@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-const TOKEN_KEY = 'amal_token'; // localStorage — shared across tabs
+const TOKEN_KEY = 'amal_token';
 
-const API = axios.create({ baseURL: '/api' });
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+const API = axios.create({ baseURL: BASE_URL });
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);
@@ -15,7 +17,7 @@ API.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY); // ✅ sessionStorage → localStorage
       window.location.href = '/login';
     }
     return Promise.reject(err);
@@ -24,7 +26,8 @@ API.interceptors.response.use(
 
 export const downloadFile = async (url, filename) => {
   const token = localStorage.getItem(TOKEN_KEY);
-  const res = await fetch('/api' + url, {
+  const res = await fetch(BASE_URL + url, {
+    // ✅ '/api' → BASE_URL
     headers: { Authorization: `Bearer ${token}` },
   });
   const blob = await res.blob();
